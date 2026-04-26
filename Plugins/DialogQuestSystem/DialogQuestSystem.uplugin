@@ -1,0 +1,33 @@
+﻿{
+    "FileVersion":  3,
+    "Version":  100,
+    "VersionName":  "1.0.0",
+    "FriendlyName":  "Dialog Quest System",
+    "Description":  "Designer-friendly dialogue and quest framework with guided graph authoring, runtime state, sample content, editor tooling, and polished default UI.",
+    "Category":  "Gameplay",
+    "CreatedBy":  "Codex",
+    "CreatedByURL":  "",
+    "DocsURL":  "",
+    "MarketplaceURL":  "",
+    "SupportURL":  "",
+    "EngineVersion":  "5.6.0",
+    "CanContainContent":  true,
+    "Installed":  true,
+    "Modules":  [
+                    {
+                        "Name":  "DQSRuntime",
+                        "Type":  "Runtime",
+                        "LoadingPhase":  "Default"
+                    },
+                    {
+                        "Name":  "DQSUI",
+                        "Type":  "Runtime",
+                        "LoadingPhase":  "Default"
+                    },
+                    {
+                        "Name":  "DQSEditor",
+                        "Type":  "Editor",
+                        "LoadingPhase":  "PostEngineInit"
+                    }
+                ]
+}

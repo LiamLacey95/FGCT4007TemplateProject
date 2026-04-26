@@ -1,0 +1,25 @@
+# Unreal generated folders
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+
+# Keep prebuilt plugin binaries so Blueprint-only users can open the template without rebuilding DQS.
+!Plugins/DialogQuestSystem/Binaries/
+!Plugins/DialogQuestSystem/Binaries/**
+
+# Build/package outputs
+Build/
+*.sln
+*.VC.db
+*.opensdf
+*.sdf
+*.pdb
+
+# IDE/user files
+.vs/
+.idea/
+*.suo
+*.user
+*.tmp
+*.log
