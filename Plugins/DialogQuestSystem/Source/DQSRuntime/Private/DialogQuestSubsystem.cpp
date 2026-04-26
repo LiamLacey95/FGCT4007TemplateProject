@@ -52,8 +52,17 @@ void UDialogQuestSubsystem::Deinitialize()
 
 bool UDialogQuestSubsystem::StartDialogue(UDialogueGraphAsset* DialogueAsset, UObject* Context)
 {
-	if (!DialogueAsset || !DialogueAsset->EntryNodeId.IsValid())
+	if (!DialogueAsset)
 	{
+		UE_LOG(LogDialogQuestSubsystem, Warning, TEXT("StartDialogue failed: DialogueAsset is null."));
+		return false;
+	}
+
+	DialogueAsset->NormalizeForRuntime();
+
+	if (!DialogueAsset->EntryNodeId.IsValid())
+	{
+		UE_LOG(LogDialogQuestSubsystem, Warning, TEXT("StartDialogue failed for '%s': missing Entry node/runtime entry id. Open the asset, connect Entry to the first node, validate, and save."), *GetNameSafe(DialogueAsset));
 		return false;
 	}
 
@@ -62,7 +71,6 @@ bool UDialogQuestSubsystem::StartDialogue(UDialogueGraphAsset* DialogueAsset, UO
 		EndDialogue();
 	}
 
-	DialogueAsset->NormalizeForRuntime();
 	ActiveDialogueAsset = DialogueAsset;
 	ActiveDialogueContext = Context;
 	ActiveDialogueSession.bIsActive = true;

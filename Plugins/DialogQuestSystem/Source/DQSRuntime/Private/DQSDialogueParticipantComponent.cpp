@@ -4,6 +4,8 @@
 #include "DialogQuestSubsystem.h"
 #include "GameFramework/Actor.h"
 
+DEFINE_LOG_CATEGORY_STATIC(LogDQSDialogueParticipant, Log, All);
+
 UDQSDialogueParticipantComponent::UDQSDialogueParticipantComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
@@ -13,6 +15,7 @@ bool UDQSDialogueParticipantComponent::StartDialogue(UObject* WorldContextObject
 {
 	if (!DialogueAsset)
 	{
+		UE_LOG(LogDQSDialogueParticipant, Warning, TEXT("StartDialogue failed on '%s': Dialogue Asset is not set on the DQSDialogueParticipantComponent."), *GetNameSafe(GetOwner()));
 		return false;
 	}
 
@@ -22,6 +25,7 @@ bool UDQSDialogueParticipantComponent::StartDialogue(UObject* WorldContextObject
 		return Subsystem->StartDialogue(DialogueAsset, ResolveContext(OverrideContext));
 	}
 
+	UE_LOG(LogDQSDialogueParticipant, Warning, TEXT("StartDialogue failed on '%s': could not find DialogQuestSubsystem from world context '%s'."), *GetNameSafe(GetOwner()), *GetNameSafe(EffectiveWorldContext));
 	return false;
 }
 

@@ -77,6 +77,7 @@ void UDialogueGraphAsset::InvalidateNodeLookupCache() const
 void UDialogueGraphAsset::NormalizeForRuntime()
 {
 	bool bChanged = false;
+	bool bHasAnyRuntimeLink = false;
 
 	for (FDQSDialogueNode& Node : Nodes)
 	{
@@ -109,6 +110,41 @@ void UDialogueGraphAsset::NormalizeForRuntime()
 			if (!Choice.Actions.IsEmpty())
 			{
 				Choice.Actions.Reset();
+				bChanged = true;
+			}
+		}
+
+		bHasAnyRuntimeLink |= Node.NextNodeId.IsValid()
+			|| Node.AlternateNodeId.IsValid()
+			|| Node.JumpTargetNodeId.IsValid();
+		for (const FDQSDialogueChoice& Choice : Node.Choices)
+		{
+			bHasAnyRuntimeLink |= Choice.TargetNodeId.IsValid();
+		}
+	}
+
+	if (!EntryNodeId.IsValid())
+	{
+		if (const FDQSDialogueNode* EntryNode = Nodes.FindByPredicate([](const FDQSDialogueNode& Node)
+		{
+			return Node.NodeType == EDQSDialogueNodeType::Entry;
+		}))
+		{
+			EntryNodeId = EntryNode->NodeId;
+			bChanged = true;
+		}
+	}
+
+	// Early starter assets created before graph compilation may contain nodes but no saved links.
+	// Keep that specific case usable by connecting a simple linear flow in array order.
+	if (!bHasAnyRuntimeLink && Nodes.Num() > 1)
+	{
+		for (int32 Index = 0; Index < Nodes.Num() - 1; ++Index)
+		{
+			FDQSDialogueNode& Node = Nodes[Index];
+			if (Node.NodeType != EDQSDialogueNodeType::End && Node.NodeType != EDQSDialogueNodeType::Choice)
+			{
+				Node.NextNodeId = Nodes[Index + 1].NodeId;
 				bChanged = true;
 			}
 		}
