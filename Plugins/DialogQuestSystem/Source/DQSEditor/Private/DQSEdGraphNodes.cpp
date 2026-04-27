@@ -155,6 +155,16 @@ namespace
 		return ChangedProperty && ChangedProperty->GetFName() == GET_MEMBER_NAME_CHECKED(FDQSDialogueNode, Choices);
 	}
 
+	FName GetChoicePinName(const FDQSDialogueChoice& Choice, const int32 Index)
+	{
+		if (!Choice.Text.IsEmpty())
+		{
+			return FName(*Choice.Text.ToString());
+		}
+
+		return FName(*FString::Printf(TEXT("Choice %d"), Index + 1));
+	}
+
 	UDQSDialogueEdGraphNode* CreateDialogueGraphNode(UEdGraph* ParentGraph, const FVector2D Location, const EDQSDialogueNodeType NodeType)
 	{
 		if (!ParentGraph)
@@ -324,6 +334,57 @@ void UDQSDialogueEdGraphNode::RefreshPinsAfterDetailsChange()
 	if (NodeData.NodeType == EDQSDialogueNodeType::Choice)
 	{
 		ResetChoiceIds(NodeData.Choices);
+		int32 ChoiceOutputCount = 0;
+		for (UEdGraphPin* Pin : Pins)
+		{
+			if (Pin && Pin->Direction == EGPD_Output)
+			{
+				++ChoiceOutputCount;
+			}
+		}
+
+		while (ChoiceOutputCount < NodeData.Choices.Num())
+		{
+			const int32 ChoiceIndex = ChoiceOutputCount;
+			CreatePin(EGPD_Output, FlowPinCategory, NAME_None, nullptr, GetChoicePinName(NodeData.Choices[ChoiceIndex], ChoiceIndex));
+			++ChoiceOutputCount;
+		}
+
+		while (ChoiceOutputCount > NodeData.Choices.Num())
+		{
+			for (int32 PinIndex = Pins.Num() - 1; PinIndex >= 0; --PinIndex)
+			{
+				UEdGraphPin* Pin = Pins[PinIndex];
+				if (Pin && Pin->Direction == EGPD_Output)
+				{
+					Pin->BreakAllPinLinks();
+					RemovePin(Pin);
+					break;
+				}
+			}
+			--ChoiceOutputCount;
+		}
+
+		for (int32 ChoiceIndex = 0, OutputIndex = 0; ChoiceIndex < NodeData.Choices.Num(); ++ChoiceIndex)
+		{
+			for (; OutputIndex < Pins.Num(); ++OutputIndex)
+			{
+				UEdGraphPin* Pin = Pins[OutputIndex];
+				if (Pin && Pin->Direction == EGPD_Output)
+				{
+					Pin->PinName = GetChoicePinName(NodeData.Choices[ChoiceIndex], ChoiceIndex);
+					++OutputIndex;
+					break;
+				}
+			}
+		}
+
+		NodeConnectionListChanged();
+		if (GetGraph())
+		{
+			GetGraph()->NotifyGraphChanged();
+		}
+		return;
 	}
 
 	ReconstructNode();
@@ -345,6 +406,7 @@ void UDQSDialogueEdGraphNode::AddChoiceOutput()
 
 	FDQSDialogueChoice& NewChoice = NodeData.Choices.AddDefaulted_GetRef();
 	NewChoice.ChoiceId = FGuid::NewGuid();
+	NewChoice.Text = FText::Format(FText::FromString(TEXT("Choice {0}")), NodeData.Choices.Num());
 	RefreshPinsAfterDetailsChange();
 }
 
@@ -389,8 +451,7 @@ void UDQSDialogueEdGraphNode::AllocateDefaultPins()
 		}
 		for (int32 Index = 0; Index < NodeData.Choices.Num(); ++Index)
 		{
-			const FText PinLabel = NodeData.Choices[Index].Text.IsEmpty() ? FText::Format(FText::FromString(TEXT("Choice {0}")), Index + 1) : NodeData.Choices[Index].Text;
-			CreatePin(EGPD_Output, FlowPinCategory, NAME_None, nullptr, *PinLabel.ToString());
+			CreatePin(EGPD_Output, FlowPinCategory, NAME_None, nullptr, GetChoicePinName(NodeData.Choices[Index], Index));
 		}
 		break;
 	case EDQSDialogueNodeType::End:
