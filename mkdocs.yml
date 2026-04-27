@@ -1,0 +1,23 @@
+site_name: DialogQuestSystem
+site_description: Beginner-first UE5 dialogue and quest plugin documentation
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+docs_dir: docs-site
+nav:
+  - Home: index.md
+  - Install: installation.md
+  - Guided Editor: guided-editor.md
+  - Blueprint Integration: blueprint-integration.md
+  - Node Reference: node-reference.md
+  - Runtime UI: runtime-ui.md
+  - Packaging: packaging.md
+  - Troubleshooting: troubleshooting.md

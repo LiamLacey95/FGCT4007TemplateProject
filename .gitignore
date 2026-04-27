@@ -10,6 +10,7 @@ Saved/
 
 # Build/package outputs
 Build/
+site/
 *.sln
 *.VC.db
 *.opensdf
