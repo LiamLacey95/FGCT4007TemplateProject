@@ -79,7 +79,7 @@ Settings:
 - `Title`: editor label for the node.
 - `Speaker Id`: optional speaker context for the prompt.
 - `Text`: optional prompt text for the choice point.
-- `Choices`: player-facing response entries. Each entry creates one output pin. Adding or removing array entries in Details refreshes the visible pins.
+- `Choices`: player-facing response entries. Use the `Add Choice Output` / `Remove Last` buttons in the Choice node Details panel to change branch count; those buttons keep the array entries and graph output pins in sync.
 
 Choice entry settings:
 
@@ -88,7 +88,7 @@ Choice entry settings:
 
 Node context actions:
 
-- `Add Choice Output`: adds another response entry and output pin.
+- `Add Choice Output`: adds another response entry and output pin. Prefer this over pressing the raw array `+` button.
 - `Remove Last Choice Output`: removes the last response entry and output pin.
 
 ### Conditioned Branch

@@ -19,7 +19,7 @@ The current beginner-facing dialogue model is:
 | `Jump` | Redirecting flow | Jump target |
 | `End` | Ending dialogue | None |
 
-Choice nodes create one output pin per `Choices` entry. If you add or remove entries in the Details panel, the graph node refreshes its visible pins so each response can connect to a separate target.
+Choice nodes create one output pin per response. Use the `Add Choice Output` and `Remove Last` buttons in the Choice node Details panel; those buttons keep the choice array and graph pins in sync.
 
 ## Quest Nodes
 

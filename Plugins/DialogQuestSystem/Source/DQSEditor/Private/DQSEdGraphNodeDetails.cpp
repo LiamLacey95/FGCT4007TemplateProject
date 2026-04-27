@@ -2,8 +2,13 @@
 
 #include "DQSEdGraphNodes.h"
 #include "DQSTypes.h"
+#include "DetailCategoryBuilder.h"
 #include "DetailLayoutBuilder.h"
+#include "DetailWidgetRow.h"
 #include "PropertyHandle.h"
+#include "Widgets/Input/SButton.h"
+#include "Widgets/SBoxPanel.h"
+#include "Widgets/Text/STextBlock.h"
 
 namespace
 {
@@ -71,6 +76,89 @@ namespace
 		}
 	}
 
+	void AddDialogueChoiceControls(IDetailLayoutBuilder& DetailBuilder)
+	{
+		const TArray<TWeakObjectPtr<UDQSDialogueEdGraphNode>> DialogueNodes = GetSelectedDialogueNodes(DetailBuilder);
+		bool bHasChoiceNode = false;
+		for (const TWeakObjectPtr<UDQSDialogueEdGraphNode>& WeakNode : DialogueNodes)
+		{
+			const UDQSDialogueEdGraphNode* DialogueNode = WeakNode.Get();
+			if (DialogueNode && DialogueNode->NodeData.NodeType == EDQSDialogueNodeType::Choice)
+			{
+				bHasChoiceNode = true;
+				break;
+			}
+		}
+
+		if (!bHasChoiceNode)
+		{
+			return;
+		}
+
+		IDetailCategoryBuilder& Category = DetailBuilder.EditCategory(TEXT("Dialog Quest System"));
+		Category.AddCustomRow(FText::FromString(TEXT("Choice Outputs")))
+		.NameContent()
+		[
+			SNew(STextBlock)
+			.Text(FText::FromString(TEXT("Choice Outputs")))
+			.Font(IDetailLayoutBuilder::GetDetailFont())
+		]
+		.ValueContent()
+		.MinDesiredWidth(360.0f)
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.Padding(0.0f, 0.0f, 6.0f, 0.0f)
+			[
+				SNew(SButton)
+				.Text(FText::FromString(TEXT("Add Choice Output")))
+				.ToolTipText(FText::FromString(TEXT("Adds a choice array entry and a matching output pin.")))
+				.OnClicked_Lambda([DialogueNodes]()
+				{
+					for (const TWeakObjectPtr<UDQSDialogueEdGraphNode>& WeakNode : DialogueNodes)
+					{
+						if (UDQSDialogueEdGraphNode* DialogueNode = WeakNode.Get())
+						{
+							DialogueNode->AddChoiceOutput();
+						}
+					}
+					return FReply::Handled();
+				})
+			]
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			[
+				SNew(SButton)
+				.Text(FText::FromString(TEXT("Remove Last")))
+				.ToolTipText(FText::FromString(TEXT("Removes the last choice entry and its output pin.")))
+				.IsEnabled_Lambda([DialogueNodes]()
+				{
+					for (const TWeakObjectPtr<UDQSDialogueEdGraphNode>& WeakNode : DialogueNodes)
+					{
+						const UDQSDialogueEdGraphNode* DialogueNode = WeakNode.Get();
+						if (DialogueNode && DialogueNode->CanRemoveChoiceOutput())
+						{
+							return true;
+						}
+					}
+					return false;
+				})
+				.OnClicked_Lambda([DialogueNodes]()
+				{
+					for (const TWeakObjectPtr<UDQSDialogueEdGraphNode>& WeakNode : DialogueNodes)
+					{
+						if (UDQSDialogueEdGraphNode* DialogueNode = WeakNode.Get())
+						{
+							DialogueNode->RemoveLastChoiceOutput();
+						}
+					}
+					return FReply::Handled();
+				})
+			]
+		];
+	}
+
 	void HideQuestInternalFields(IDetailLayoutBuilder& DetailBuilder)
 	{
 		TSharedRef<IPropertyHandle> NodeDataHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDQSQuestEdGraphNode, NodeData));
@@ -102,6 +190,7 @@ void FDQSDialogueEdGraphNodeDetails::CustomizeDetails(IDetailLayoutBuilder& Deta
 {
 	HideDialogueInternalFields(DetailBuilder);
 	BindDialogueChoiceArrayRefresh(DetailBuilder);
+	AddDialogueChoiceControls(DetailBuilder);
 }
 
 TSharedRef<IDetailCustomization> FDQSQuestEdGraphNodeDetails::MakeInstance()
