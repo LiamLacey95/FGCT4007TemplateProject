@@ -149,6 +149,12 @@ namespace
 		return true;
 	}
 
+	bool IsChoiceArrayEdit(const FPropertyChangedEvent& PropertyChangedEvent)
+	{
+		const FProperty* ChangedProperty = PropertyChangedEvent.Property ? PropertyChangedEvent.Property : PropertyChangedEvent.MemberProperty;
+		return ChangedProperty && ChangedProperty->GetFName() == GET_MEMBER_NAME_CHECKED(FDQSDialogueNode, Choices);
+	}
+
 	UDQSDialogueEdGraphNode* CreateDialogueGraphNode(UEdGraph* ParentGraph, const FVector2D Location, const EDQSDialogueNodeType NodeType)
 	{
 		if (!ParentGraph)
@@ -415,6 +421,49 @@ void UDQSDialogueEdGraphNode::PostPlacedNewNode()
 void UDQSDialogueEdGraphNode::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
+	if (NodeData.NodeType == EDQSDialogueNodeType::Choice && IsChoiceArrayEdit(PropertyChangedEvent))
+	{
+		ResetChoiceIds(NodeData.Choices);
+	}
+	ReconstructNode();
+	if (GetGraph())
+	{
+		GetGraph()->NotifyGraphChanged();
+	}
+}
+
+void UDQSDialogueEdGraphNode::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeChainProperty(PropertyChangedEvent);
+
+	if (NodeData.NodeType != EDQSDialogueNodeType::Choice)
+	{
+		return;
+	}
+
+	bool bChangedChoices = IsChoiceArrayEdit(PropertyChangedEvent);
+	for (const FEditPropertyChain::TDoubleLinkedListNode* Node = PropertyChangedEvent.PropertyChain.GetHead(); Node; Node = Node->GetNextNode())
+	{
+		const FProperty* Property = Node->GetValue();
+		if (Property && Property->GetFName() == GET_MEMBER_NAME_CHECKED(FDQSDialogueNode, Choices))
+		{
+			bChangedChoices = true;
+			break;
+		}
+	}
+
+	if (!bChangedChoices)
+	{
+		return;
+	}
+
+	Modify();
+	if (GetGraph())
+	{
+		GetGraph()->Modify();
+	}
+
+	ResetChoiceIds(NodeData.Choices);
 	ReconstructNode();
 	if (GetGraph())
 	{

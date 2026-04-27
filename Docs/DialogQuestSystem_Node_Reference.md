@@ -79,7 +79,7 @@ Settings:
 - `Title`: editor label for the node.
 - `Speaker Id`: optional speaker context for the prompt.
 - `Text`: optional prompt text for the choice point.
-- `Choices`: player-facing response entries. Each entry should have one output pin.
+- `Choices`: player-facing response entries. Each entry creates one output pin. Adding or removing array entries in Details refreshes the visible pins.
 
 Choice entry settings:
 
