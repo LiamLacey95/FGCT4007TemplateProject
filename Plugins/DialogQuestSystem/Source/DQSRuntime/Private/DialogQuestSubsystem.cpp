@@ -198,6 +198,12 @@ bool UDialogQuestSubsystem::CompleteQuest(const FName QuestId)
 	return UpdateQuestStatus(QuestId, EDQSQuestStatus::Completed, FText::FromString(TEXT("Quest completed")));
 }
 
+void UDialogQuestSubsystem::TriggerDialogueEvent(const FGameplayTag EventTag, const FName EventName, UObject* Context)
+{
+	UObject* EventContext = Context ? Context : ActiveDialogueContext.Get();
+	OnDialogueEventTriggered.Broadcast(EventTag, EventName, EventContext);
+}
+
 void UDialogQuestSubsystem::SetVariable(const FName Key, FDQSVariableValue Value, const EDQSStateScope Scope, const FName ScopedOwnerId)
 {
 	if (Key.IsNone())

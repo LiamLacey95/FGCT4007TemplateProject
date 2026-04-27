@@ -46,6 +46,12 @@ Use it for:
 - selected-node help
 - next-step guidance
 
+## Drag from pin
+
+You can drag from a node's flow pin into empty canvas, type the node you want, and select it from the popup. The editor should create the new node and automatically connect it to the dragged pin.
+
+If the node is created without a connection, restart the editor after rebuilding the plugin so the latest `DQSEditor` module is loaded.
+
 ## Validation panel
 
 Validation is intended to be a working assistant, not just a compiler dump.

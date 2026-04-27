@@ -39,3 +39,18 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Dialog Quest System")
 	int32 GetDialogQuestEventDelta() const;
 };
+
+UINTERFACE(BlueprintType)
+class DQSRUNTIME_API UDQSDialogueEventReceiverInterface : public UInterface
+{
+	GENERATED_BODY()
+};
+
+class DQSRUNTIME_API IDQSDialogueEventReceiverInterface
+{
+	GENERATED_BODY()
+
+public:
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Dialog Quest System")
+	void ReceiveDQSDialogueEvent(FGameplayTag EventTag, FName EventName, UObject* Context);
+};

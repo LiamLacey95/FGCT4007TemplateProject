@@ -113,6 +113,42 @@ namespace
 		return false;
 	}
 
+	bool TryAutoconnectNewNode(UEdGraphNode* NewNode, UEdGraphPin* FromPin)
+	{
+		if (!NewNode || !FromPin || !NewNode->GetGraph())
+		{
+			return false;
+		}
+
+		const EEdGraphPinDirection WantedDirection = FromPin->Direction == EGPD_Output ? EGPD_Input : EGPD_Output;
+		UEdGraphPin* CandidatePin = nullptr;
+		for (UEdGraphPin* Pin : NewNode->Pins)
+		{
+			if (Pin && Pin->Direction == WantedDirection && Pin->PinType.PinCategory == FromPin->PinType.PinCategory)
+			{
+				CandidatePin = Pin;
+				break;
+			}
+		}
+
+		if (!CandidatePin)
+		{
+			return false;
+		}
+
+		UEdGraphPin* OutputPin = FromPin->Direction == EGPD_Output ? FromPin : CandidatePin;
+		UEdGraphPin* InputPin = FromPin->Direction == EGPD_Input ? FromPin : CandidatePin;
+		const UEdGraphSchema* Schema = NewNode->GetGraph()->GetSchema();
+		if (!Schema || !Schema->TryCreateConnection(OutputPin, InputPin))
+		{
+			return false;
+		}
+
+		OutputPin->GetOwningNode()->NodeConnectionListChanged();
+		InputPin->GetOwningNode()->NodeConnectionListChanged();
+		return true;
+	}
+
 	UDQSDialogueEdGraphNode* CreateDialogueGraphNode(UEdGraph* ParentGraph, const FVector2D Location, const EDQSDialogueNodeType NodeType)
 	{
 		if (!ParentGraph)
@@ -230,7 +266,7 @@ namespace
 
 			if (FromPin)
 			{
-				Node->AutowireNewNode(FromPin);
+				TryAutoconnectNewNode(Node, FromPin);
 			}
 			if (ParentGraph)
 			{
@@ -260,7 +296,7 @@ namespace
 
 			if (FromPin)
 			{
-				Node->AutowireNewNode(FromPin);
+				TryAutoconnectNewNode(Node, FromPin);
 			}
 			if (ParentGraph)
 			{

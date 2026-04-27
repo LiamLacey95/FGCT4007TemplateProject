@@ -14,6 +14,7 @@ struct FInputModeDataBase;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDQSDialogueLineUpdatedSignature, const FDQSActiveDialogueLine&, ActiveLine);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDQSDialogueEndedSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDQSQuestUpdatedSignature, const FDQSQuestStatusUpdate&, Update);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FDQSDialogueEventTriggeredSignature, FGameplayTag, EventTag, FName, EventName, UObject*, Context);
 
 UCLASS(BlueprintType)
 class DQSRUNTIME_API UDialogQuestSubsystem : public UGameInstanceSubsystem
@@ -34,6 +35,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Dialog Quest System")
 	FDQSQuestUpdatedSignature OnQuestUpdated;
+
+	UPROPERTY(BlueprintAssignable, Category = "Dialog Quest System")
+	FDQSDialogueEventTriggeredSignature OnDialogueEventTriggered;
 
 	UFUNCTION(BlueprintCallable, Category = "Dialog Quest System")
 	bool StartDialogue(UDialogueGraphAsset* DialogueAsset, UObject* Context);
@@ -58,6 +62,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Dialog Quest System")
 	bool CompleteQuest(FName QuestId);
+
+	UFUNCTION(BlueprintCallable, Category = "Dialog Quest System")
+	void TriggerDialogueEvent(FGameplayTag EventTag, FName EventName, UObject* Context);
 
 	UFUNCTION(BlueprintCallable, Category = "Dialog Quest System")
 	void SetVariable(FName Key, FDQSVariableValue Value, EDQSStateScope Scope = EDQSStateScope::Global, FName ScopedOwnerId = NAME_None);

@@ -51,7 +51,7 @@ namespace
 		return nullptr;
 	}
 
-	void ResetChoiceIds(TArray<FDQSDialogueChoice>& Choices)
+	void ResetSnippetChoiceIds(TArray<FDQSDialogueChoice>& Choices)
 	{
 		for (FDQSDialogueChoice& Choice : Choices)
 		{
@@ -235,7 +235,7 @@ UDQSDialogueEdGraphNode* FDQSGraphEditorUtils::CreateDialogueNode(UEdGraph* Grap
 	if (NodeType == EDQSDialogueNodeType::Choice)
 	{
 		Node->NodeData.Choices.SetNum(2);
-		ResetChoiceIds(Node->NodeData.Choices);
+		ResetSnippetChoiceIds(Node->NodeData.Choices);
 	}
 
 	Graph->AddNode(Node, true, false);

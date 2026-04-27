@@ -47,7 +47,9 @@
 
 ## Dragging from a pin into empty space does not auto-connect the new node
 - The intended workflow is drag from an existing pin, release in empty space, then select the node type from the popup menu.
+- The new node should automatically connect to the dragged pin.
 - If the node appears but does not connect, rebuild/restart once to ensure the latest editor module is loaded.
+- If this still fails after a rebuild, check that you dragged from a flow pin, not from empty canvas or a non-flow details field.
 
 ## Delete or copy/paste shortcuts do not work in the graph editor
 - The custom graph editor supports `Delete`, `Ctrl+C`, `Ctrl+V`, `Ctrl+X`, and duplication shortcuts after the updated editor module is loaded.
