@@ -313,6 +313,26 @@ namespace
 	};
 }
 
+void UDQSDialogueEdGraphNode::RefreshPinsAfterDetailsChange()
+{
+	Modify();
+	if (GetGraph())
+	{
+		GetGraph()->Modify();
+	}
+
+	if (NodeData.NodeType == EDQSDialogueNodeType::Choice)
+	{
+		ResetChoiceIds(NodeData.Choices);
+	}
+
+	ReconstructNode();
+	if (GetGraph())
+	{
+		GetGraph()->NotifyGraphChanged();
+	}
+}
+
 void UDQSDialogueEdGraphNode::AddChoiceOutput()
 {
 	if (NodeData.NodeType != EDQSDialogueNodeType::Choice)
@@ -325,8 +345,7 @@ void UDQSDialogueEdGraphNode::AddChoiceOutput()
 
 	FDQSDialogueChoice& NewChoice = NodeData.Choices.AddDefaulted_GetRef();
 	NewChoice.ChoiceId = FGuid::NewGuid();
-	ReconstructNode();
-	GetGraph()->NotifyGraphChanged();
+	RefreshPinsAfterDetailsChange();
 }
 
 void UDQSDialogueEdGraphNode::RemoveLastChoiceOutput()
@@ -339,8 +358,7 @@ void UDQSDialogueEdGraphNode::RemoveLastChoiceOutput()
 	Modify();
 	GetGraph()->Modify();
 	NodeData.Choices.RemoveAt(NodeData.Choices.Num() - 1);
-	ReconstructNode();
-	GetGraph()->NotifyGraphChanged();
+	RefreshPinsAfterDetailsChange();
 }
 
 bool UDQSDialogueEdGraphNode::CanRemoveChoiceOutput() const
@@ -423,7 +441,8 @@ void UDQSDialogueEdGraphNode::PostEditChangeProperty(FPropertyChangedEvent& Prop
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	if (NodeData.NodeType == EDQSDialogueNodeType::Choice && IsChoiceArrayEdit(PropertyChangedEvent))
 	{
-		ResetChoiceIds(NodeData.Choices);
+		RefreshPinsAfterDetailsChange();
+		return;
 	}
 	ReconstructNode();
 	if (GetGraph())
@@ -457,18 +476,7 @@ void UDQSDialogueEdGraphNode::PostEditChangeChainProperty(FPropertyChangedChainE
 		return;
 	}
 
-	Modify();
-	if (GetGraph())
-	{
-		GetGraph()->Modify();
-	}
-
-	ResetChoiceIds(NodeData.Choices);
-	ReconstructNode();
-	if (GetGraph())
-	{
-		GetGraph()->NotifyGraphChanged();
-	}
+	RefreshPinsAfterDetailsChange();
 }
 
 bool UDQSDialogueEdGraphNode::CanUserDeleteNode() const

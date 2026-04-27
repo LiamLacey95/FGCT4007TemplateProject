@@ -29,6 +29,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Dialog Quest System")
 	FDQSDialogueNode NodeData;
 
+	void RefreshPinsAfterDetailsChange();
 	void AddChoiceOutput();
 	void RemoveLastChoiceOutput();
 	bool CanRemoveChoiceOutput() const;

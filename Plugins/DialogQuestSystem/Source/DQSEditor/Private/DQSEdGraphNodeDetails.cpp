@@ -2,8 +2,8 @@
 
 #include "DQSEdGraphNodes.h"
 #include "DQSTypes.h"
-#include "PropertyHandle.h"
 #include "DetailLayoutBuilder.h"
+#include "PropertyHandle.h"
 
 namespace
 {
@@ -26,6 +26,48 @@ namespace
 			{
 				DetailBuilder.HideProperty(ChildHandle);
 			}
+		}
+	}
+
+	TArray<TWeakObjectPtr<UDQSDialogueEdGraphNode>> GetSelectedDialogueNodes(IDetailLayoutBuilder& DetailBuilder)
+	{
+		TArray<TWeakObjectPtr<UDQSDialogueEdGraphNode>> DialogueNodes;
+		TArray<TWeakObjectPtr<UObject>> SelectedObjects;
+		DetailBuilder.GetObjectsBeingCustomized(SelectedObjects);
+		for (const TWeakObjectPtr<UObject>& SelectedObject : SelectedObjects)
+		{
+			UDQSDialogueEdGraphNode* DialogueNode = Cast<UDQSDialogueEdGraphNode>(SelectedObject.Get());
+			if (DialogueNode)
+			{
+				DialogueNodes.Add(DialogueNode);
+			}
+		}
+		return DialogueNodes;
+	}
+
+	void BindDialogueChoiceArrayRefresh(IDetailLayoutBuilder& DetailBuilder)
+	{
+		TSharedRef<IPropertyHandle> NodeDataHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDQSDialogueEdGraphNode, NodeData));
+		if (TSharedPtr<IPropertyHandle> ChoicesHandle = NodeDataHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FDQSDialogueNode, Choices)))
+		{
+			const TArray<TWeakObjectPtr<UDQSDialogueEdGraphNode>> DialogueNodes = GetSelectedDialogueNodes(DetailBuilder);
+			const FSimpleDelegate RefreshDelegate = FSimpleDelegate::CreateLambda([DialogueNodes]()
+			{
+				for (const TWeakObjectPtr<UDQSDialogueEdGraphNode>& WeakNode : DialogueNodes)
+				{
+					UDQSDialogueEdGraphNode* DialogueNode = WeakNode.Get();
+					if (DialogueNode && DialogueNode->NodeData.NodeType == EDQSDialogueNodeType::Choice)
+					{
+						DialogueNode->RefreshPinsAfterDetailsChange();
+					}
+				}
+			});
+			if (TSharedPtr<IPropertyHandleArray> ChoicesArrayHandle = ChoicesHandle->AsArray())
+			{
+				ChoicesArrayHandle->SetOnNumElementsChanged(RefreshDelegate);
+			}
+			ChoicesHandle->SetOnPropertyValueChanged(RefreshDelegate);
+			ChoicesHandle->SetOnChildPropertyValueChanged(RefreshDelegate);
 		}
 	}
 
@@ -59,6 +101,7 @@ TSharedRef<IDetailCustomization> FDQSDialogueEdGraphNodeDetails::MakeInstance()
 void FDQSDialogueEdGraphNodeDetails::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 {
 	HideDialogueInternalFields(DetailBuilder);
+	BindDialogueChoiceArrayRefresh(DetailBuilder);
 }
 
 TSharedRef<IDetailCustomization> FDQSQuestEdGraphNodeDetails::MakeInstance()
