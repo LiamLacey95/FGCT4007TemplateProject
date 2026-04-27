@@ -42,6 +42,7 @@ private:
 	TSharedRef<class SDockTab> SpawnValidationTab(const class FSpawnTabArgs& Args);
 	TSharedRef<class SDockTab> SpawnSimulationTab(const class FSpawnTabArgs& Args);
 	void HandleSelectionChanged(const TSet<UObject*>& NewSelection);
+	void HandleFinishedChangingDetails(const FPropertyChangedEvent& PropertyChangedEvent);
 	void CompileEditedAsset() const;
 	void ValidateEditedAsset();
 	void CopySelectedNodes() const;

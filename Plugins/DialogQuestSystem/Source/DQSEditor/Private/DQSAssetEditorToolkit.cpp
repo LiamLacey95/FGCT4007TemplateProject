@@ -158,6 +158,7 @@ void FDQSAssetEditorToolkit::InitializeCommon(const EToolkitMode::Type Mode, con
 	DetailsArgs.bAllowSearch = true;
 	DetailsArgs.bHideSelectionTip = true;
 	DetailsView = PropertyEditorModule.CreateDetailView(DetailsArgs);
+	DetailsView->OnFinishedChangingProperties().AddSP(this, &FDQSAssetEditorToolkit::HandleFinishedChangingDetails);
 	DetailsView->SetObject(Asset);
 
 	BindEditorCommands();
@@ -447,6 +448,32 @@ void FDQSAssetEditorToolkit::HandleSelectionChanged(const TSet<UObject*>& NewSel
 	{
 		DetailsView->SetObject(SelectedObject);
 		RefreshHelpPanel();
+	}
+}
+
+void FDQSAssetEditorToolkit::HandleFinishedChangingDetails(const FPropertyChangedEvent& PropertyChangedEvent)
+{
+	if (!GraphEditor.IsValid() || !EditingGraph)
+	{
+		return;
+	}
+
+	bool bRefreshedChoiceNode = false;
+	const FGraphPanelSelectionSet SelectedNodes = GraphEditor->GetSelectedNodes();
+	for (UObject* SelectedObject : SelectedNodes)
+	{
+		UDQSDialogueEdGraphNode* DialogueNode = Cast<UDQSDialogueEdGraphNode>(SelectedObject);
+		if (DialogueNode && DialogueNode->NodeData.NodeType == EDQSDialogueNodeType::Choice)
+		{
+			DialogueNode->RefreshPinsAfterDetailsChange();
+			bRefreshedChoiceNode = true;
+		}
+	}
+
+	if (bRefreshedChoiceNode)
+	{
+		GraphEditor->NotifyGraphChanged();
+		ValidateEditedAsset();
 	}
 }
 
