@@ -12,6 +12,7 @@
 #include "GameFramework/PlayerController.h"
 #include "DQSSaveGame.h"
 #include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogDialogQuestSubsystem, Log, All);
 
@@ -142,7 +143,13 @@ void UDialogQuestSubsystem::EndDialogue()
 
 bool UDialogQuestSubsystem::StartQuest(UQuestGraphAsset* QuestAsset)
 {
-	if (!QuestAsset || QuestAsset->Metadata.GraphId.IsNone() || !QuestAsset->EntryNodeId.IsValid())
+	if (!QuestAsset || QuestAsset->Metadata.GraphId.IsNone())
+	{
+		return false;
+	}
+
+	QuestAsset->NormalizeForRuntime();
+	if (!QuestAsset->EntryNodeId.IsValid())
 	{
 		return false;
 	}
@@ -402,7 +409,13 @@ void UDialogQuestSubsystem::PresentDialogueNode(const FDQSDialogueNode& Node)
 		? (ActiveDialogueAsset ? ActiveDialogueAsset->ResolveSpeakerStyle(Node.SpeakerId) : nullptr)
 		: Node.Presentation.SpeakerStyleOverride;
 	CurrentDialogueLine.PresentationTags = Node.PresentationTags;
+	CurrentDialogueLine.VoiceSound = Node.VoiceSound;
 	CurrentDialogueLine.bCanContinue = Node.Choices.IsEmpty() && Node.NextNodeId.IsValid();
+
+	if (USoundBase* SoundToPlay = Node.VoiceSound.LoadSynchronous())
+	{
+		UGameplayStatics::PlaySound2D(this, SoundToPlay);
+	}
 
 	for (const FDQSDialogueChoice& Choice : Node.Choices)
 	{

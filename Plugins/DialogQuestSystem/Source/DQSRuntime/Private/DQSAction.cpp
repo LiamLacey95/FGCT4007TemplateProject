@@ -2,6 +2,7 @@
 
 #include "DQSInterfaces.h"
 #include "DialogQuestSubsystem.h"
+#include "Components/ActorComponent.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "GameFramework/Actor.h"
@@ -28,6 +29,22 @@ namespace
 		if (Target && Target->GetClass()->ImplementsInterface(UDQSDialogueEventReceiverInterface::StaticClass()))
 		{
 			IDQSDialogueEventReceiverInterface::Execute_ReceiveDQSDialogueEvent(Target, EventTag, EventName, Context);
+		}
+	}
+
+	void SendDialogueEventToActorAndComponents(AActor* TargetActor, const FGameplayTag EventTag, const FName EventName, UObject* Context)
+	{
+		if (!TargetActor)
+		{
+			return;
+		}
+
+		SendDialogueEventToObject(TargetActor, EventTag, EventName, Context);
+
+		TInlineComponentArray<UActorComponent*> Components(TargetActor);
+		for (UActorComponent* Component : Components)
+		{
+			SendDialogueEventToObject(Component, EventTag, EventName, Context);
 		}
 	}
 
@@ -136,7 +153,7 @@ void UDQSAction_TriggerDialogueEvent::Execute_Implementation(UDialogQuestSubsyst
 		{
 			for (TActorIterator<AActor> It(World); It; ++It)
 			{
-				SendDialogueEventToObject(*It, EventTag, ResolvedEventName, Context);
+				SendDialogueEventToActorAndComponents(*It, EventTag, ResolvedEventName, Context);
 			}
 		}
 		break;
@@ -147,7 +164,7 @@ void UDQSAction_TriggerDialogueEvent::Execute_Implementation(UDialogQuestSubsyst
 			{
 				if (!ActorTag.IsNone() && It->ActorHasTag(ActorTag))
 				{
-					SendDialogueEventToObject(*It, EventTag, ResolvedEventName, Context);
+					SendDialogueEventToActorAndComponents(*It, EventTag, ResolvedEventName, Context);
 				}
 			}
 		}
@@ -160,7 +177,7 @@ void UDQSAction_TriggerDialogueEvent::Execute_Implementation(UDialogQuestSubsyst
 			{
 				if (It->IsA(RequiredClass))
 				{
-					SendDialogueEventToObject(*It, EventTag, ResolvedEventName, Context);
+					SendDialogueEventToActorAndComponents(*It, EventTag, ResolvedEventName, Context);
 				}
 			}
 		}

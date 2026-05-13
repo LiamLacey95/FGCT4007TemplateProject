@@ -704,12 +704,16 @@ void FDQSGraphEditorUtils::BuildDialogueValidationIssues(UDialogueGraphAsset* As
 				{
 					AddIssue(OutIssues, EDQSValidationSeverity::Warning, FText::FromString(TEXT("Empty Choice Text")), FText::Format(FText::FromString(TEXT("Choice node '{0}' has a response with no visible text.")), Node.Title), FText::FromString(TEXT("Write response text so players understand what they are choosing.")), Node.NodeId);
 				}
-				if (!Choice.TargetNodeId.IsValid())
-				{
-					AddIssue(OutIssues, EDQSValidationSeverity::Blocking, FText::FromString(TEXT("Unconnected Choice Branch")), FText::Format(FText::FromString(TEXT("Choice node '{0}' has an option that does not lead anywhere.")), Node.Title), FText::FromString(TEXT("Connect every choice output to a follow-up node or an End node.")), Node.NodeId);
+					if (!Choice.TargetNodeId.IsValid())
+					{
+						AddIssue(OutIssues, EDQSValidationSeverity::Blocking, FText::FromString(TEXT("Unconnected Choice Branch")), FText::Format(FText::FromString(TEXT("Choice node '{0}' has an option that does not lead anywhere.")), Node.Title), FText::FromString(TEXT("Connect every choice output to a follow-up node or an End node.")), Node.NodeId);
+					}
+					if (!Choice.Conditions.IsEmpty() || !Choice.Actions.IsEmpty())
+					{
+						AddIssue(OutIssues, EDQSValidationSeverity::Warning, FText::FromString(TEXT("Deprecated Choice Logic")), FText::Format(FText::FromString(TEXT("Choice node '{0}' contains deprecated choice-level conditions or actions.")), Node.Title), FText::FromString(TEXT("The data is preserved, but runtime no longer executes it. Move conditions to a Conditioned Branch node and actions to a Set Condition node.")), Node.NodeId);
+					}
 				}
 			}
-		}
 		else if (Node.NodeType == EDQSDialogueNodeType::ConditionedStart)
 		{
 			if (Node.Conditions.IsEmpty())

@@ -133,6 +133,11 @@ TSoftObjectPtr<UDQSSpeakerStyleAsset> UDQSDialogueWidgetBase::GetSpeakerStyle() 
 	return ViewModel ? ViewModel->GetCurrentLine().SpeakerStyle : nullptr;
 }
 
+TSoftObjectPtr<USoundBase> UDQSDialogueWidgetBase::GetVoiceSound() const
+{
+	return ViewModel ? ViewModel->GetCurrentLine().VoiceSound : nullptr;
+}
+
 UDQSUIThemeAsset* UDQSDialogueWidgetBase::GetResolvedTheme() const
 {
 	if (!ThemeOverride.IsNull())

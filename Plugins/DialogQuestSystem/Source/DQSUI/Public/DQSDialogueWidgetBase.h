@@ -7,6 +7,7 @@
 class UDQSDialogueViewModel;
 class UDQSSpeakerStyleAsset;
 class UDQSUIThemeAsset;
+class USoundBase;
 class UTexture2D;
 
 UCLASS(Abstract, Blueprintable)
@@ -70,6 +71,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Dialog Quest System|UI")
 	TSoftObjectPtr<UDQSSpeakerStyleAsset> GetSpeakerStyle() const;
+
+	UFUNCTION(BlueprintPure, Category = "Dialog Quest System|UI")
+	TSoftObjectPtr<USoundBase> GetVoiceSound() const;
 
 	UFUNCTION(BlueprintPure, Category = "Dialog Quest System|UI")
 	UDQSUIThemeAsset* GetResolvedTheme() const;

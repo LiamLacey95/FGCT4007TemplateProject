@@ -343,6 +343,9 @@ struct DQSRUNTIME_API FDQSActiveDialogueLine
 	FGameplayTagContainer PresentationTags;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Dialog Quest System")
+	TSoftObjectPtr<USoundBase> VoiceSound;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Dialog Quest System")
 	FDQSDialoguePresentationOverride Presentation;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Dialog Quest System")

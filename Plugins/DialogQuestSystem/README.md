@@ -20,18 +20,15 @@ It provides:
 - `DQSEditor`: graph asset factories, schemas, compiler, validation, and asset editors
 
 ## Documentation
-- [Documentation Index](/F:/Ue5/Projects/DialogQuestSystem/DialogQuestSystem/Docs/DialogQuestSystem_Docs_Index.md)
-- [Architecture](/F:/Ue5/Projects/DialogQuestSystem/DialogQuestSystem/Docs/DialogQuestSystem_Architecture.md)
-- [Authoring Guide](/F:/Ue5/Projects/DialogQuestSystem/DialogQuestSystem/Docs/DialogQuestSystem_AuthoringGuide.md)
-- [Beginner UX](/F:/Ue5/Projects/DialogQuestSystem/DialogQuestSystem/Docs/DialogQuestSystem_BeginnerUX.md)
-- [Blueprint Integration](/F:/Ue5/Projects/DialogQuestSystem/DialogQuestSystem/Docs/DialogQuestSystem_BlueprintIntegration.md)
-- [Node Reference](/F:/Ue5/Projects/DialogQuestSystem/DialogQuestSystem/Docs/DialogQuestSystem_Node_Reference.md)
-- [Editor QA Checklist](/F:/Ue5/Projects/DialogQuestSystem/DialogQuestSystem/Docs/DialogQuestSystem_Editor_QA_Checklist.md)
-- [First Playable Flow](/F:/Ue5/Projects/DialogQuestSystem/DialogQuestSystem/Docs/DialogQuestSystem_FirstPlayableFlow.md)
-- [UI Customization](/F:/Ue5/Projects/DialogQuestSystem/DialogQuestSystem/Docs/DialogQuestSystem_UICustomization.md)
-- [Packaging Guide](/F:/Ue5/Projects/DialogQuestSystem/DialogQuestSystem/Docs/DialogQuestSystem_PackagingGuide.md)
-- [Release Checklist](/F:/Ue5/Projects/DialogQuestSystem/DialogQuestSystem/Docs/DialogQuestSystem_ReleaseChecklist.md)
-- [Troubleshooting](/F:/Ue5/Projects/DialogQuestSystem/DialogQuestSystem/Docs/DialogQuestSystem_Troubleshooting.md)
+- [Documentation Index](../../Docs/DialogQuestSystem_Docs_Index.md)
+- [Installation](../../Docs/DialogQuestSystem_Installation.md)
+- [Authoring Guide](../../Docs/DialogQuestSystem_AuthoringGuide.md)
+- [Node Reference](../../Docs/DialogQuestSystem_Node_Reference.md)
+- [Blueprint Integration](../../Docs/DialogQuestSystem_BlueprintIntegration.md)
+- [Runtime UI](../../Docs/DialogQuestSystem_RuntimeUI.md)
+- [Packaging Guide](../../Docs/DialogQuestSystem_PackagingGuide.md)
+- [Troubleshooting](../../Docs/DialogQuestSystem_Troubleshooting.md)
+- [QA Checklist](../../Docs/DialogQuestSystem_QA_Checklist.md)
 
 ## Current State
 The plugin compiles for `DialogQuestSystemEditor Win64 Development` on UE 5.6 in this project.
@@ -41,4 +38,4 @@ Sample graph assets are shipped under plugin content:
 - `/DialogQuestSystem/Samples/Dialogue/DQS_Sample_QuestOffer`
 - `/DialogQuestSystem/Samples/Quests/DQS_Sample_FirstFavor`
 
-Dialogue authoring now uses `Conditioned Branch` for checks and `Set Condition` for state changes/actions. Dialogue can also trigger actor-facing events through the `Trigger Dialogue Event` action and `DQS Dialogue Event Receiver Interface`.
+Dialogue authoring uses `Conditioned Branch` for checks and `Set Condition` for state changes/actions. Deprecated choice-level conditions/actions are preserved for compatibility, but runtime does not execute them.

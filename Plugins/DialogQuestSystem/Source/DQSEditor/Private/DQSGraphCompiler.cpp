@@ -1,5 +1,7 @@
 #include "DQSGraphCompiler.h"
 
+#include "DQSAction.h"
+#include "DQSCondition.h"
 #include "DQSEdGraphNodes.h"
 #include "DQSDialogueGraphAsset.h"
 #include "DQSQuestGraphAsset.h"
@@ -34,6 +36,43 @@ namespace
 			}
 		}
 	}
+
+	template <typename ObjectType>
+	void DuplicateInstancedObjectsForRuntime(const TArray<TObjectPtr<ObjectType>>& SourceObjects, UObject* RuntimeOuter, TArray<TObjectPtr<ObjectType>>& OutRuntimeObjects)
+	{
+		const TArray<TObjectPtr<ObjectType>> ObjectsToDuplicate = SourceObjects;
+		OutRuntimeObjects.Reset();
+		if (!RuntimeOuter)
+		{
+			return;
+		}
+
+		for (ObjectType* SourceObject : ObjectsToDuplicate)
+		{
+			if (SourceObject)
+			{
+				OutRuntimeObjects.Add(DuplicateObject<ObjectType>(SourceObject, RuntimeOuter));
+			}
+		}
+	}
+
+	void DuplicateDialogueInstancedDataForRuntime(FDQSDialogueNode& NodeData, UDialogueGraphAsset* Asset)
+	{
+		DuplicateInstancedObjectsForRuntime(NodeData.Conditions, Asset, NodeData.Conditions);
+		DuplicateInstancedObjectsForRuntime(NodeData.Actions, Asset, NodeData.Actions);
+
+		for (FDQSDialogueChoice& Choice : NodeData.Choices)
+		{
+			DuplicateInstancedObjectsForRuntime(Choice.Conditions, Asset, Choice.Conditions);
+			DuplicateInstancedObjectsForRuntime(Choice.Actions, Asset, Choice.Actions);
+		}
+	}
+
+	void DuplicateQuestInstancedDataForRuntime(FDQSQuestNode& NodeData, UQuestGraphAsset* Asset)
+	{
+		DuplicateInstancedObjectsForRuntime(NodeData.Conditions, Asset, NodeData.Conditions);
+		DuplicateInstancedObjectsForRuntime(NodeData.Actions, Asset, NodeData.Actions);
+	}
 }
 
 void FDQSGraphCompiler::CompileDialogueAsset(UDialogueGraphAsset* Asset)
@@ -49,6 +88,18 @@ void FDQSGraphCompiler::CompileDialogueAsset(UDialogueGraphAsset* Asset)
 
 	for (UEdGraphNode* GraphNode : Asset->EditorGraph->Nodes)
 	{
+		if (UDQSDialogueEdGraphNode* DialogueNode = Cast<UDQSDialogueEdGraphNode>(GraphNode))
+		{
+			if (!DialogueNode->NodeData.NodeId.IsValid())
+			{
+				DialogueNode->Modify();
+				DialogueNode->NodeData.NodeId = FGuid::NewGuid();
+			}
+		}
+	}
+
+	for (UEdGraphNode* GraphNode : Asset->EditorGraph->Nodes)
+	{
 		UDQSDialogueEdGraphNode* DialogueNode = Cast<UDQSDialogueEdGraphNode>(GraphNode);
 		if (!DialogueNode)
 		{
@@ -56,31 +107,11 @@ void FDQSGraphCompiler::CompileDialogueAsset(UDialogueGraphAsset* Asset)
 		}
 
 		FDQSDialogueNode NodeData = DialogueNode->NodeData;
-		if (!NodeData.NodeId.IsValid())
-		{
-			NodeData.NodeId = FGuid::NewGuid();
-			DialogueNode->NodeData.NodeId = NodeData.NodeId;
-		}
 
 		if (NodeData.NodeType == EDQSDialogueNodeType::Condition)
 		{
 			NodeData.NodeType = EDQSDialogueNodeType::ConditionedStart;
 			DialogueNode->NodeData.NodeType = EDQSDialogueNodeType::ConditionedStart;
-		}
-
-		bool bClearedDeprecatedChoiceData = false;
-		for (FDQSDialogueChoice& Choice : NodeData.Choices)
-		{
-			if (!Choice.Conditions.IsEmpty() || !Choice.Actions.IsEmpty())
-			{
-				Choice.Conditions.Reset();
-				Choice.Actions.Reset();
-				bClearedDeprecatedChoiceData = true;
-			}
-		}
-		if (bClearedDeprecatedChoiceData)
-		{
-			DialogueNode->NodeData.Choices = NodeData.Choices;
 		}
 
 		const TArray<UEdGraphPin*>& Pins = DialogueNode->Pins;
@@ -122,6 +153,7 @@ void FDQSGraphCompiler::CompileDialogueAsset(UDialogueGraphAsset* Asset)
 			Asset->EntryNodeId = NodeData.NodeId;
 		}
 
+		DuplicateDialogueInstancedDataForRuntime(NodeData, Asset);
 		Asset->Nodes.Add(NodeData);
 	}
 
@@ -141,6 +173,18 @@ void FDQSGraphCompiler::CompileQuestAsset(UQuestGraphAsset* Asset)
 
 	for (UEdGraphNode* GraphNode : Asset->EditorGraph->Nodes)
 	{
+		if (UDQSQuestEdGraphNode* QuestNode = Cast<UDQSQuestEdGraphNode>(GraphNode))
+		{
+			if (!QuestNode->NodeData.NodeId.IsValid())
+			{
+				QuestNode->Modify();
+				QuestNode->NodeData.NodeId = FGuid::NewGuid();
+			}
+		}
+	}
+
+	for (UEdGraphNode* GraphNode : Asset->EditorGraph->Nodes)
+	{
 		UDQSQuestEdGraphNode* QuestNode = Cast<UDQSQuestEdGraphNode>(GraphNode);
 		if (!QuestNode)
 		{
@@ -148,11 +192,6 @@ void FDQSGraphCompiler::CompileQuestAsset(UQuestGraphAsset* Asset)
 		}
 
 		FDQSQuestNode NodeData = QuestNode->NodeData;
-		if (!NodeData.NodeId.IsValid())
-		{
-			NodeData.NodeId = FGuid::NewGuid();
-			QuestNode->NodeData.NodeId = NodeData.NodeId;
-		}
 
 		TArray<UEdGraphPin*> OutputPins;
 		for (UEdGraphPin* Pin : QuestNode->Pins)
@@ -178,6 +217,7 @@ void FDQSGraphCompiler::CompileQuestAsset(UQuestGraphAsset* Asset)
 			Asset->EntryNodeId = NodeData.NodeId;
 		}
 
+		DuplicateQuestInstancedDataForRuntime(NodeData, Asset);
 		Asset->Nodes.Add(NodeData);
 	}
 
