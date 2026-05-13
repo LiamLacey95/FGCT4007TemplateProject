@@ -459,20 +459,37 @@ void FDQSAssetEditorToolkit::HandleFinishedChangingDetails(const FPropertyChange
 	}
 
 	bool bRefreshedChoiceNode = false;
+	bool bChangedGraphNodeDetails = false;
 	const FGraphPanelSelectionSet SelectedNodes = GraphEditor->GetSelectedNodes();
 	for (UObject* SelectedObject : SelectedNodes)
 	{
-		UDQSDialogueEdGraphNode* DialogueNode = Cast<UDQSDialogueEdGraphNode>(SelectedObject);
-		if (DialogueNode && DialogueNode->NodeData.NodeType == EDQSDialogueNodeType::Choice)
+		if (UDQSDialogueEdGraphNode* DialogueNode = Cast<UDQSDialogueEdGraphNode>(SelectedObject))
 		{
-			DialogueNode->RefreshPinsAfterDetailsChange();
-			bRefreshedChoiceNode = true;
+			bChangedGraphNodeDetails = true;
+			if (DialogueNode->NodeData.NodeType == EDQSDialogueNodeType::Choice)
+			{
+				DialogueNode->RefreshPinsAfterDetailsChange();
+				bRefreshedChoiceNode = true;
+			}
+		}
+		else if (Cast<UDQSQuestEdGraphNode>(SelectedObject))
+		{
+			bChangedGraphNodeDetails = true;
 		}
 	}
 
-	if (bRefreshedChoiceNode)
+	if (bChangedGraphNodeDetails)
 	{
-		GraphEditor->NotifyGraphChanged();
+		if (bRefreshedChoiceNode)
+		{
+			GraphEditor->NotifyGraphChanged();
+		}
+
+		CompileEditedAsset();
+		if (EditingAsset)
+		{
+			EditingAsset->MarkPackageDirty();
+		}
 		ValidateEditedAsset();
 	}
 }

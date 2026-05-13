@@ -13,6 +13,7 @@ class DQSRUNTIME_API UQuestGraphAsset : public UPrimaryDataAsset
 
 public:
 	UQuestGraphAsset();
+	virtual void PostLoad() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialog Quest System")
 	FDQSGraphMetadata Metadata;
@@ -36,6 +37,7 @@ public:
 
 	const FDQSQuestNode* FindNodeById(const FGuid& NodeId) const;
 	void InvalidateNodeLookupCache() const;
+	void NormalizeForRuntime();
 
 private:
 	void RebuildNodeLookupCache() const;

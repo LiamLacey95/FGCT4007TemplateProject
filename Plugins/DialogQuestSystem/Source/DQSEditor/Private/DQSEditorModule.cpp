@@ -8,9 +8,11 @@
 #include "DQSEdGraphNodeDetails.h"
 #include "DQSNodeStructDetails.h"
 #include "DQSDialogueGraphAsset.h"
+#include "DQSGraphCompiler.h"
 #include "DQSQuestGraphAsset.h"
 #include "IAssetTools.h"
 #include "PropertyEditorModule.h"
+#include "UObject/ObjectSaveContext.h"
 
 namespace
 {
@@ -61,10 +63,12 @@ void FDQSEditorModule::StartupModule()
 {
 	RegisterAssetTools();
 	RegisterCustomizations();
+	RegisterGraphCompileHooks();
 }
 
 void FDQSEditorModule::ShutdownModule()
 {
+	UnregisterGraphCompileHooks();
 	UnregisterCustomizations();
 	UnregisterAssetTools();
 }
@@ -126,6 +130,35 @@ void FDQSEditorModule::UnregisterCustomizations()
 	PropertyEditorModule.UnregisterCustomPropertyTypeLayout(FDQSQuestNode::StaticStruct()->GetFName());
 	PropertyEditorModule.UnregisterCustomPropertyTypeLayout(FDQSDialogueChoice::StaticStruct()->GetFName());
 	PropertyEditorModule.NotifyCustomizationModuleChanged();
+}
+
+void FDQSEditorModule::RegisterGraphCompileHooks()
+{
+	if (!ObjectPreSaveHandle.IsValid())
+	{
+		ObjectPreSaveHandle = FCoreUObjectDelegates::OnObjectPreSave.AddRaw(this, &FDQSEditorModule::HandleObjectPreSave);
+	}
+}
+
+void FDQSEditorModule::UnregisterGraphCompileHooks()
+{
+	if (ObjectPreSaveHandle.IsValid())
+	{
+		FCoreUObjectDelegates::OnObjectPreSave.Remove(ObjectPreSaveHandle);
+		ObjectPreSaveHandle.Reset();
+	}
+}
+
+void FDQSEditorModule::HandleObjectPreSave(UObject* Object, FObjectPreSaveContext SaveContext)
+{
+	if (UDialogueGraphAsset* DialogueAsset = Cast<UDialogueGraphAsset>(Object))
+	{
+		FDQSGraphCompiler::CompileDialogueAsset(DialogueAsset);
+	}
+	else if (UQuestGraphAsset* QuestAsset = Cast<UQuestGraphAsset>(Object))
+	{
+		FDQSGraphCompiler::CompileQuestAsset(QuestAsset);
+	}
 }
 
 IMPLEMENT_MODULE(FDQSEditorModule, DQSEditor)

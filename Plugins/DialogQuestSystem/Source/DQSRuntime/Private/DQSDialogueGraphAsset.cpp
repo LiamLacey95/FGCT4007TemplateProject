@@ -100,18 +100,6 @@ void UDialogueGraphAsset::NormalizeForRuntime()
 				Choice.ChoiceId = FGuid::NewGuid();
 				bChanged = true;
 			}
-
-			if (!Choice.Conditions.IsEmpty())
-			{
-				Choice.Conditions.Reset();
-				bChanged = true;
-			}
-
-			if (!Choice.Actions.IsEmpty())
-			{
-				Choice.Actions.Reset();
-				bChanged = true;
-			}
 		}
 
 		bHasAnyRuntimeLink |= Node.NextNodeId.IsValid()

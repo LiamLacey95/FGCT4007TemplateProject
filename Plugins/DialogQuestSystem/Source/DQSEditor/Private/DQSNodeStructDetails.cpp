@@ -74,6 +74,18 @@ namespace
 
 		return EDQSDialogueNodeType::Speech;
 	}
+
+	EDQSQuestNodeType GetQuestNodeTypeForProperty(const TSharedRef<IPropertyHandle>& StructPropertyHandle)
+	{
+		TSharedPtr<IPropertyHandle> NodeTypeHandle = StructPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FDQSQuestNode, NodeType));
+		uint8 NodeTypeValue = static_cast<uint8>(EDQSQuestNodeType::Objective);
+		if (NodeTypeHandle.IsValid() && NodeTypeHandle->GetValue(NodeTypeValue) == FPropertyAccess::Success)
+		{
+			return static_cast<EDQSQuestNodeType>(NodeTypeValue);
+		}
+
+		return EDQSQuestNodeType::Objective;
+	}
 }
 
 TSharedRef<IPropertyTypeCustomization> FDQSDialogueNodeDetails::MakeInstance()
@@ -114,8 +126,7 @@ void FDQSDialogueNodeDetails::CustomizeChildren(TSharedRef<IPropertyHandle> Stru
 	{
 		HiddenChildren.Append(
 		{
-			GET_MEMBER_NAME_CHECKED(FDQSDialogueNode, PresentationTags),
-			GET_MEMBER_NAME_CHECKED(FDQSDialogueNode, VoiceSound)
+			GET_MEMBER_NAME_CHECKED(FDQSDialogueNode, PresentationTags)
 		});
 	}
 
@@ -165,6 +176,8 @@ void FDQSQuestNodeDetails::CustomizeHeader(TSharedRef<IPropertyHandle> StructPro
 
 void FDQSQuestNodeDetails::CustomizeChildren(TSharedRef<IPropertyHandle> StructPropertyHandle, IDetailChildrenBuilder& StructBuilder, IPropertyTypeCustomizationUtils& StructCustomizationUtils)
 {
+	const EDQSQuestNodeType NodeType = GetQuestNodeTypeForProperty(StructPropertyHandle);
+
 	TSet<FName> HiddenChildren =
 	{
 		GET_MEMBER_NAME_CHECKED(FDQSQuestNode, NodeId),
@@ -173,13 +186,19 @@ void FDQSQuestNodeDetails::CustomizeChildren(TSharedRef<IPropertyHandle> StructP
 		GET_MEMBER_NAME_CHECKED(FDQSQuestNode, AlternateNodeId)
 	};
 
-	if (IsSimpleModeForProperty(StructPropertyHandle))
+	if (NodeType != EDQSQuestNodeType::Condition && NodeType != EDQSQuestNodeType::Branch)
 	{
-		HiddenChildren.Append(
-		{
-			GET_MEMBER_NAME_CHECKED(FDQSQuestNode, Conditions),
-			GET_MEMBER_NAME_CHECKED(FDQSQuestNode, Actions)
-		});
+		HiddenChildren.Add(GET_MEMBER_NAME_CHECKED(FDQSQuestNode, Conditions));
+	}
+
+	if (NodeType != EDQSQuestNodeType::Reward)
+	{
+		HiddenChildren.Add(GET_MEMBER_NAME_CHECKED(FDQSQuestNode, Actions));
+	}
+
+	if (IsSimpleModeForProperty(StructPropertyHandle) && NodeType != EDQSQuestNodeType::Subquest)
+	{
+		HiddenChildren.Add(GET_MEMBER_NAME_CHECKED(FDQSQuestNode, SubquestAsset));
 	}
 
 	AddVisibleChildren(StructPropertyHandle, StructBuilder, HiddenChildren);

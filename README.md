@@ -31,7 +31,9 @@ mkdocs.yml
 Start with:
 
 ```text
-Docs/DialogQuestSystem_FirstPlayableFlow.md
+Docs/DialogQuestSystem_Docs_Index.md
+Docs/DialogQuestSystem_Installation.md
+Docs/DialogQuestSystem_AuthoringGuide.md
 Docs/DialogQuestSystem_BlueprintIntegration.md
 Docs/DialogQuestSystem_Node_Reference.md
 Docs/DialogQuestSystem_Troubleshooting.md

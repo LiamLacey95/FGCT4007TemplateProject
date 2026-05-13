@@ -5,6 +5,12 @@ UQuestGraphAsset::UQuestGraphAsset()
 	Metadata.GraphId = *FGuid::NewGuid().ToString(EGuidFormats::DigitsWithHyphens);
 }
 
+void UQuestGraphAsset::PostLoad()
+{
+	Super::PostLoad();
+	NormalizeForRuntime();
+}
+
 const FDQSQuestNode* UQuestGraphAsset::FindNodeById(const FGuid& NodeId) const
 {
 	if (!NodeId.IsValid())
@@ -28,6 +34,53 @@ const FDQSQuestNode* UQuestGraphAsset::FindNodeById(const FGuid& NodeId) const
 void UQuestGraphAsset::InvalidateNodeLookupCache() const
 {
 	NodeLookupCache.Reset();
+}
+
+void UQuestGraphAsset::NormalizeForRuntime()
+{
+	bool bChanged = false;
+	bool bHasAnyRuntimeLink = false;
+
+	for (FDQSQuestNode& Node : Nodes)
+	{
+		if (!Node.NodeId.IsValid())
+		{
+			Node.NodeId = FGuid::NewGuid();
+			bChanged = true;
+		}
+
+		bHasAnyRuntimeLink |= Node.NextNodeId.IsValid() || Node.AlternateNodeId.IsValid();
+	}
+
+	if (!EntryNodeId.IsValid())
+	{
+		if (const FDQSQuestNode* StartNode = Nodes.FindByPredicate([](const FDQSQuestNode& Node)
+		{
+			return Node.NodeType == EDQSQuestNodeType::Start;
+		}))
+		{
+			EntryNodeId = StartNode->NodeId;
+			bChanged = true;
+		}
+	}
+
+	if (!bHasAnyRuntimeLink && Nodes.Num() > 1)
+	{
+		for (int32 Index = 0; Index < Nodes.Num() - 1; ++Index)
+		{
+			FDQSQuestNode& Node = Nodes[Index];
+			if (Node.NodeType != EDQSQuestNodeType::Complete && Node.NodeType != EDQSQuestNodeType::Fail)
+			{
+				Node.NextNodeId = Nodes[Index + 1].NodeId;
+				bChanged = true;
+			}
+		}
+	}
+
+	if (bChanged)
+	{
+		InvalidateNodeLookupCache();
+	}
 }
 
 void UQuestGraphAsset::RebuildNodeLookupCache() const
